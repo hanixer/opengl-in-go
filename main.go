@@ -2,30 +2,31 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"log"
 	"runtime"
+	"strings"
+
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
 const (
-	width  = 500
-	height = 500
-	rows = 10
-	columns = 10
+	width              = 500
+	height             = 500
+	rows               = 10
+	columns            = 10
 	vertexShaderSource = `
 		#version 410
 		in vec3 vp;
 		void main() {
 			gl_Position = vec4(vp, 1.0);
 		}
-	` + "\x00"	
+	` + "\x00"
 	fragmentShaderSource = `
 		#version 410
 		out vec4 frag_colour;
 		void main() {
-			frag_colour = vec4(1, 0.5, 1, 1);
+			frag_colour = vec4(1, 1, 1, 1);
 		}
 	` + "\x00"
 )
@@ -48,9 +49,22 @@ var (
 )
 
 type cell struct {
-	drawable uint32
-	x int
-	y int
+	drawable  uint32
+	alive     bool
+	aliveNext bool
+	x         int
+	y         int
+}
+
+type cellsSet [][]*cell
+
+func (c *cell) draw() {
+	gl.BindVertexArray(c.drawable)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square)/3))
+}
+
+func (c *cell) updateState(cells cellsSet) {
+
 }
 
 func main() {
@@ -60,7 +74,7 @@ func main() {
 	defer glfw.Terminate()
 
 	prog := initOpenGL()
-	
+
 	cells := makeCells()
 
 	for !window.ShouldClose() {
@@ -101,7 +115,7 @@ func initOpenGL() uint32 {
 	fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 	if err != nil {
 		panic(err)
-		}	
+	}
 	prog := gl.CreateProgram()
 	gl.AttachShader(prog, vertexShader)
 	gl.AttachShader(prog, fragmentShader)
@@ -109,16 +123,14 @@ func initOpenGL() uint32 {
 	return prog
 }
 
-func draw(cells [][]*cell, window *glfw.Window, program uint32) {
+func draw(cells cellsSet, window *glfw.Window, program uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
-	
-	for i:=0; i < rows;i++ {
+
+	for i := 0; i < rows; i++ {
 		for j := 0; j < columns; j++ {
-			if ((i % 2 != 0) == (j % 2 == 0)) {
-				
-			gl.BindVertexArray(cells[i][j].drawable)
-			gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square) / 3))
+			if (i%2 != 0) == (j%2 == 0) {
+				cells[i][j].draw()
 			}
 		}
 	}
@@ -153,27 +165,27 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	var status int32
 	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
 	if status == gl.FALSE {
-        var logLength int32
-        gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
-        
-        log := strings.Repeat("\x00", int(logLength+1))
-        gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
-        
+		var logLength int32
+		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
+
+		log := strings.Repeat("\x00", int(logLength+1))
+		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
+
 		return 0, fmt.Errorf("failed to compile %v: %v", source, log)
 	}
-	
-    return shader, nil
+
+	return shader, nil
 }
 
-func makeCells()[][]*cell {
-	cells := make([][]*cell, rows)
+func makeCells() cellsSet {
+	cells := make(cellsSet, rows)
 	for r := 0; r < rows; r++ {
 		cells[r] = make([]*cell, columns)
 		for c := 0; c < columns; c++ {
 			cells[r][c] = newCell(c, r)
 		}
 	}
-	
+
 	return cells
 }
 
@@ -182,13 +194,12 @@ func newCell(x, y int) *cell {
 	var xScale float32 = 1.0 / columns
 	var yScale float32 = 1.0 / rows
 	for i := 0; i < len(square); i += 3 {
-		points[i] = (float32(square[i]) + 0.5 + float32(x)) * xScale * 2.0 - 1.0
-		points[i+1] = (float32(square[i+1]) + 0.5 + float32(y)) * yScale * 2.0 - 1.0
-		// fmt.Println(x, y, square[i], points[i])
+		points[i] = (float32(square[i])+0.5+float32(x))*xScale*2.0 - 1.0
+		points[i+1] = (float32(square[i+1])+0.5+float32(y))*yScale*2.0 - 1.0
 	}
 	return &cell{
 		drawable: makeVao(points),
-		x: x,
-		y: y,
+		x:        x,
+		y:        y,
 	}
 }
