@@ -59,7 +59,7 @@ var (
 	}
 )
 
-func main() {
+func main2() {
 	runtime.LockOSThread()
 	window := initGlfw()
 	defer glfw.Terminate()
@@ -82,6 +82,17 @@ func main() {
 		glfw.PollEvents()
 		window.SwapBuffers()
 	}
+}
+
+func main() {
+	img := image.NewRGBA(image.Rect(0, 0, 400, 400))
+	v0 := vertex{x: 10, y: 10}
+	v1 := vertex{x: 200, y: 100}
+	v2 := vertex{x: 350, y: 10}
+	drawTriangle(v0, v1, v2, img, color.Black)
+	f, _ := os.Create("out.png")
+	png.Encode(f, img)
+	f.Close()
 }
 
 // initGlfw initializes glfw and returns a Window to use.
