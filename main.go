@@ -59,7 +59,7 @@ var (
 	}
 )
 
-func main2() {
+func main5() {
 	runtime.LockOSThread()
 	window := initGlfw()
 	defer glfw.Terminate()
@@ -84,12 +84,35 @@ func main2() {
 	}
 }
 
-func main() {
-	img := image.NewRGBA(image.Rect(0, 0, 400, 400))
-	v0 := vertex{x: 10, y: 10}
-	v1 := vertex{x: 200, y: 100}
-	v2 := vertex{x: 350, y: 10}
+func main11() {
+	img := image.NewRGBA(image.Rect(0, 0, 200, 200))
+	v0 := vertex{x: 50, y: 100}
+	v1 := vertex{x: 100, y: 100}
+	v2 := vertex{x: 100, y: 50}
 	drawTriangle(v0, v1, v2, img, color.Black)
+	v3 := vertex{x: 50, y: 100}
+	v4 := vertex{x: 100, y: 50}
+	v5 := vertex{x: 50, y: 50}
+	drawTriangle(v3, v4, v5, img, color.White)
+	f, _ := os.Create("out.png")
+	png.Encode(f, img)
+	f.Close()
+}
+
+func main() {
+	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+	v0 := vertex{x: 10, y: 50, r: 1.0}
+	v1 := vertex{x: 70, y: 40, g: 1.0}
+	v2 := vertex{x: 30, y: 0, b: 1.0}
+	drawTriangle(v0, v1, v2, img, color.Black)
+	f, _ := os.Create("out.png")
+	png.Encode(f, img)
+	f.Close()
+}
+
+func main3() {
+	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+	drawLine(1, 1, 50, 40, img)
 	f, _ := os.Create("out.png")
 	png.Encode(f, img)
 	f.Close()
@@ -156,7 +179,7 @@ func makeTexture() uint32 {
 
 	height := img.Bounds().Dy()
 	stride := make([]uint8, img.Stride)
-	for row := 0; row < height/2; row++ {
+	for row := 0; row < height; row++ {
 		mirrorRow := height - row - 1
 		strideCurrent := img.Pix[row*img.Stride : row*img.Stride+img.Stride]
 		strideMirror := img.Pix[mirrorRow*img.Stride : mirrorRow*img.Stride+img.Stride]

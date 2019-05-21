@@ -43,7 +43,11 @@ func newEdgeEquation(v0, v1 vertex) edgeEquation {
 // n = (-10, 5)
 // (-10, 5) * (5, 5) = -10 * 5 + 25 =
 func (edge edgeEquation) test(x, y float64) bool {
-	return edge.a*x+edge.b*y+edge.c > 0
+	return edge.a*x+edge.b*y+edge.c < 0
+}
+
+func (edge edgeEquation) evaluate(x, y float64) float64 {
+	return edge.a*x + edge.b*y + edge.c
 }
 
 type parameterEquation struct {
@@ -72,6 +76,10 @@ func boundingBox(v0, v1, v2 vertex) (x0, y0, x1, y1 float64) {
 	return
 }
 
+func makeColor(r, g, b float64) color.Color {
+	return color.RGBA{uint8(r * 255), uint8(g * 255), uint8(b * 255), 255}
+}
+
 func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 	minX, minY, maxX, maxY := boundingBox(v0, v1, v2)
 
@@ -79,11 +87,36 @@ func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 	e1 := newEdgeEquation(v2, v0)
 	e2 := newEdgeEquation(v0, v1)
 
-	for y := minY; y <= maxY; y++ {
-		for x := minX; x <= maxX; x++ {
-			if e0.test(x, y) && e1.test(x, y) && e2.test(x, y) {
-				img.Set(int(x), int(y), c)
+	k0 := 1.0 / e0.evaluate(v0.x, v0.y)
+	k1 := 1.0 / e1.evaluate(v1.x, v1.y)
+	k2 := 1.0 / e2.evaluate(v2.x, v2.y)
+
+	for y := minY + 0.5; y <= maxY+0.5; y++ {
+		for x := minX + 0.5; x <= maxX+0.5; x++ {
+			// compute baricentric coordinates
+			w0 := k0 * e0.evaluate(x, y)
+			w1 := k1 * e1.evaluate(x, y)
+			w2 := k2 * e2.evaluate(x, y)
+
+			if w0 > 0 && w1 > 0 && w2 > 0 {
+				r := v0.r*w0 + v1.r*w1 + v2.r*w2
+				g := v0.g*w0 + v1.g*w1 + v2.g*w2
+				b := v0.b*w0 + v1.b*w1 + v2.b*w2
+				colo := makeColor(r, g, b)
+				img.Set(int(x), int(y), colo)
 			}
+		}
+	}
+}
+
+func drawLine(x0, y0, x1, y1 int, img draw.Image) {
+	y := y0
+	edge := newEdgeEquation(vertex{x: float64(x0), y: float64(y0)}, vertex{x: float64(x1), y: float64(y1)})
+
+	for x := x0; x <= x1; x++ {
+		img.Set(x, y, color.Black)
+		if !edge.test(float64(x), float64(y)) {
+			y++
 		}
 	}
 }
