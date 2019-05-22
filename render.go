@@ -43,7 +43,7 @@ func newEdgeEquation(v0, v1 vertex) edgeEquation {
 // n = (-10, 5)
 // (-10, 5) * (5, 5) = -10 * 5 + 25 =
 func (edge edgeEquation) test(x, y float64) bool {
-	return edge.a*x+edge.b*y+edge.c < 0
+	return edge.a*x+edge.b*y+edge.c > 0
 }
 
 func (edge edgeEquation) evaluate(x, y float64) float64 {
@@ -107,6 +107,10 @@ func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 			}
 		}
 	}
+}
+
+func drawLineF(x0, y0, x1, y1 float64, img draw.Image) {
+	drawLine(int(x0), int(y0), int(x1), int(y1), img)
 }
 
 func drawLine(x0, y0, x1, y1 int, img draw.Image) {
