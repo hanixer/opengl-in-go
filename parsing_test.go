@@ -62,7 +62,6 @@ func Test_parseSvgString(t *testing.T) {
 			assert.Equal(t, 2.0, r.position.Y())
 			assert.Equal(t, 1.0, r.position.X())
 			assert.Equal(t, 123.0, svg.width)
-			// assert.Equal(t, 4321.0, svg.height)
 		} else {
 			t.Errorf("no elements")
 		}
@@ -81,7 +80,23 @@ func Test_parseSvgString(t *testing.T) {
 			assert.Equal(t, 100.0, pg.points[0].Y())
 			assert.Equal(t, 50.0, pg.points[2].X())
 			assert.Equal(t, 75.6, pg.points[2].Y())
-			// assert.Equal(t, 4321.0, svg.height)
+		} else {
+			t.Errorf("no elements")
+		}
+	})
+
+	d4 := `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+	<g fill="white" stroke="green" stroke-width="5">
+	<polygon points="0,100 50,25 50,75.6 100,0" />
+	<polygon points="0,100 50,25 50,75.6 100,222" />
+	</g>
+  </svg>`
+	t.Run("", func(t *testing.T) {
+		svg := parseSvgString(d4)
+		if len(svg.elements) > 0 {
+			g := svg.elements[0].(*svgGroup)
+			assert.NotNil(t, g)
+			assert.Equal(t, 2, len(g.elements))
 		} else {
 			t.Errorf("no elements")
 		}

@@ -89,6 +89,10 @@ func parseChildren(node *xq.Node) []svgElement {
 			polygon := parsePolygon(child)
 			polygon.data = parseElementData(child)
 			children = append(children, &polygon)
+		} else if child.Data == "g" {
+			group := parseGroup(child)
+			group.data = parseElementData(child)
+			children = append(children, &group)
 		}
 	}
 	return children
@@ -116,6 +120,11 @@ func parseElementData(node *xq.Node) (data svgElementData) {
 	data.style.miterLimit = parseFloat(node, "stroke-miterlimit")
 
 	// TODO: parse transform
+	return
+}
+
+func parseGroup(node *xq.Node) (g svgGroup) {
+	g.elements = parseChildren(node)
 	return
 }
 
