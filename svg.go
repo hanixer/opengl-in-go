@@ -26,8 +26,8 @@ const (
 
 // style represents the style of drawing
 type style struct {
-	strokeColor color.Color
-	fillColor   color.Color
+	strokeColor color.RGBA
+	fillColor   color.RGBA
 	strokeWidth float64
 	miterLimit  float64
 }
@@ -75,10 +75,14 @@ type svgRect struct {
 	dimension mgl64.Vec2
 }
 
+func (g *svgRect) isSvg() {}
+
 type svgPolygon struct {
 	data   svgElementData
 	points []mgl64.Vec2
 }
+
+func (g *svgPolygon) isSvg() {}
 
 type svgEllipse struct {
 	data   svgElementData
