@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-gl/mathgl/mgl64"
 	"image"
 	"image/color"
-	"image/draw"
 )
 
 // svgelementtype represents type of svg document element
@@ -100,26 +98,4 @@ type svgImage struct {
 type svg struct {
 	width, height float64
 	elements      []svgElement
-}
-
-func drawSvg(target draw.Image, svgElem svgElement) {
-	switch v := svgElem.(type) {
-	case *svgLine:
-		drawLineF(v.from.X(), v.from.Y(), v.to.X(), v.to.Y(), target)
-	case *svgGroup:
-		for _, el := range v.elements {
-			drawSvg(target, el)
-		}
-	}
-}
-
-func ononon() {
-	var jjj svgElement
-	lin := svgLine{}
-	jjj = &lin
-	switch v := jjj.(type) {
-	case *svgLine:
-		fmt.Println(v.data)
-	}
-	fmt.Println(jjj)
 }
