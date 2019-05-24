@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/go-gl/mathgl/mgl64"
+	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
+
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 // svgelementtype represents type of svg document element
@@ -98,4 +101,54 @@ type svgImage struct {
 type svg struct {
 	width, height float64
 	elements      []svgElement
+}
+
+func drawSvg(svg *svg) draw.Image {
+	img := image.NewRGBA(image.Rect(0, 0, int(svg.width), int(svg.height)))
+	drawElements(svg.elements, img)
+
+	return img
+}
+
+func drawElements(elements []svgElement, img draw.Image) {
+	fmt.Println(len(elements))
+	for _, elem := range elements {
+		switch v := elem.(type) {
+		case *svgLine:
+			drawLineF(v.from.X(), v.from.Y(), v.to.X(), v.to.Y(), img, v.data.style.strokeColor)
+		case *svgPoint:
+			drawPoint(v.position.X(), v.position.Y(), img, v.data.style.strokeColor)
+		case *svgPolygon:
+			drawSvgPolygon(v, img)
+		case *svgGroup:
+			drawElements(v.elements, img)
+		}
+	}
+}
+
+func drawSvgPolygon(polygon *svgPolygon, img draw.Image) {
+	triangles := triangulate(polygon.points)
+
+	for i := 0; i+2 < len(triangles); i += 3 {
+		// drawTriangle2(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor)
+
+		// drawLinePoints(triangles[i], triangles[i+1], img, polygon.data.style.strokeColor)
+		// drawLinePoints(triangles[i+1], triangles[i+2], img, polygon.data.style.strokeColor)
+	}
+
+	ps := polygon.points
+	for i := 0; i < len(polygon.points); i += 2 {
+		drawLinePoints(ps[i], ps[(i+1)%len(ps)], img, polygon.data.style.strokeColor)
+	}
+}
+
+func triangulate(points []mgl64.Vec2) []mgl64.Vec2 {
+	result := []mgl64.Vec2{}
+	for i := 1; i+1 < len(points); i += 2 {
+		result = append(result, points[0])
+		result = append(result, points[i])
+		result = append(result, points[i+1])
+	}
+
+	return result
 }
