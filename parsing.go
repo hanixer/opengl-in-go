@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func makeXmlDoc(r io.Reader) *xq.Node {
+func makeXMLDoc(r io.Reader) *xq.Node {
 	n, _ := xq.Parse(r)
 	return n
 }
@@ -45,7 +45,7 @@ func parseSvgString(s string) *svg {
 }
 
 func parseSvgReader(r io.Reader) *svg {
-	n := makeXmlDoc(r)
+	n := makeXMLDoc(r)
 	return parseSvg(n)
 }
 

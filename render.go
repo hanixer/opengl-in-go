@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"image/draw"
 )
@@ -143,11 +144,16 @@ func drawLine(x0, y0, x1, y1 int, img draw.Image) {
 	v1--
 
 	d := edge.evaluate(float64(x0)+0.5, float64(y0)+0.5)
-
+	// fuu := func(x float64) float64 {
+	// m := float64(y1-y0) / float64(x1-x0)
+	// return float64(y0) + m*x
+	// }
+	fmt.Println(d)
 	v := v0
 	for u := u0; u <= u1; u++ {
 		if steep {
 			img.Set(v, u, color.White)
+			fmt.Println(edge.evaluate(float64(v+incr), float64(u)+1.5), edge.a, edge.b, edge.c, incr, v)
 			if edge.evaluate(float64(v+incr), float64(u)+1.5) > 0 {
 				v += incr
 			}
@@ -158,11 +164,15 @@ func drawLine(x0, y0, x1, y1 int, img draw.Image) {
 			// }
 		} else {
 			img.Set(u, v, color.White)
-			d += edge.a
-			if d <= 0.0 {
-				d += edge.b * float64(incr)
+			fmt.Println(edge.evaluate(float64(u)+1.5, float64(v+incr)), edge.a, edge.b, edge.c, incr, v)
+			if edge.evaluate(float64(u)+1.5, float64(v+incr)) < 0 {
 				v += incr
 			}
+			// d += edge.a
+			// if d <= 0.0 {
+			// 	d += edge.b * float64(incr)
+			// 	v += incr
+			// }
 		}
 	}
 }
@@ -170,7 +180,7 @@ func drawLine(x0, y0, x1, y1 int, img draw.Image) {
 func chooseEndPoints(steep bool, x0, x1, y0, y1 int) (int, int, int, int, edgeEquation) {
 	if steep {
 		if y0 < y1 {
-			return y0, y1, x0, x1, newEdgeEquationInt(y0, x0, y1, x1)
+			return y0, y1, x0, x1, newEdgeEquationInt(x0, y0, x1, y1)
 		}
 		return y1, y0, x1, x0, newEdgeEquationInt(y1, x1, y0, x0)
 	}
