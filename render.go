@@ -37,10 +37,6 @@ func newEdgeEquationInt(x0, y0, x1, y1 int) edgeEquation {
 	return e
 }
 
-// v0 = (0, 0)
-// v1 = (5, 10)
-// n = (-10, 5)
-// (-10, 5) * (5, 5) = -10 * 5 + 25 =
 func (edge edgeEquation) test(x, y float64) bool {
 	return edge.a*x+edge.b*y+edge.c > 0
 }
@@ -119,60 +115,39 @@ func drawLine(x0, y0, x1, y1 int, img draw.Image) {
 		incr = 1
 		steep = true
 	} else if slope := float64(y1-y0) / float64(x1-x0); slope > 1.0 {
-		// incr +
-		// drawVertical
 		incr = 1
 		steep = true
 	} else if slope >= 0.0 {
-		// incr ++
-		// horizontal
 		incr = 1
 		steep = false
 	} else if slope > -1.0 {
-		// incr --
-		// horizontal
 		incr = -1
 		steep = false
 	} else if slope <= 1.0 {
-		// incr --
 		incr = -1
 		steep = true
 	}
 
-	var u0, u1, v0, v1, edge = chooseEndPoints(steep, x0, x1, y0, y1)
-	v1++
-	v1--
+	var u0, u1, v0, _, edge = chooseEndPoints(steep, x0, x1, y0, y1)
 
-	d := edge.evaluate(float64(x0)+0.5, float64(y0)+0.5)
-	// fuu := func(x float64) float64 {
-	// m := float64(y1-y0) / float64(x1-x0)
-	// return float64(y0) + m*x
-	// }
-	fmt.Println(d)
 	v := v0
 	for u := u0; u <= u1; u++ {
 		if steep {
 			img.Set(v, u, color.White)
 			fmt.Println(edge.evaluate(float64(v+incr), float64(u)+1.5), edge.a, edge.b, edge.c, incr, v)
-			if edge.evaluate(float64(v+incr), float64(u)+1.5) > 0 {
+			if incr > 0 && edge.evaluate(float64(v+incr), float64(u)+1.5) > 0 {
+				v += incr
+			} else if incr < 0 && edge.evaluate(float64(v+incr), float64(u)+1.5) < 0 {
 				v += incr
 			}
-			// d += edge.a
-			// if d <= 0.0 {
-			// 	d += edge.b * float64(incr)
-			// 	v += incr
-			// }
 		} else {
 			img.Set(u, v, color.White)
 			fmt.Println(edge.evaluate(float64(u)+1.5, float64(v+incr)), edge.a, edge.b, edge.c, incr, v)
-			if edge.evaluate(float64(u)+1.5, float64(v+incr)) < 0 {
+			if incr > 0 && edge.evaluate(float64(u)+1.5, float64(v+incr)) < 0 {
+				v += incr
+			} else if incr < 0 && edge.evaluate(float64(u)+1.5, float64(v+incr)) > 0 {
 				v += incr
 			}
-			// d += edge.a
-			// if d <= 0.0 {
-			// 	d += edge.b * float64(incr)
-			// 	v += incr
-			// }
 		}
 	}
 }
@@ -182,7 +157,7 @@ func chooseEndPoints(steep bool, x0, x1, y0, y1 int) (int, int, int, int, edgeEq
 		if y0 < y1 {
 			return y0, y1, x0, x1, newEdgeEquationInt(x0, y0, x1, y1)
 		}
-		return y1, y0, x1, x0, newEdgeEquationInt(y1, x1, y0, x0)
+		return y1, y0, x1, x0, newEdgeEquationInt(x1, y1, x0, y0)
 	}
 
 	if x0 < x1 {
