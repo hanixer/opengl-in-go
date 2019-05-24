@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"image/draw"
 )
@@ -104,11 +103,11 @@ func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 	}
 }
 
-func drawLineF(x0, y0, x1, y1 float64, img draw.Image) {
-	drawLine(int(x0), int(y0), int(x1), int(y1), img)
+func drawLineF(x0, y0, x1, y1 float64, img draw.Image, fillColor color.Color) {
+	drawLine(int(x0), int(y0), int(x1), int(y1), img, fillColor)
 }
 
-func drawLine(x0, y0, x1, y1 int, img draw.Image) {
+func drawLine(x0, y0, x1, y1 int, img draw.Image, fillColor color.Color) {
 	steep := false
 	incr := 1
 	if x1-x0 == 0 {
@@ -133,16 +132,14 @@ func drawLine(x0, y0, x1, y1 int, img draw.Image) {
 	v := v0
 	for u := u0; u <= u1; u++ {
 		if steep {
-			img.Set(v, u, color.White)
-			fmt.Println(edge.evaluate(float64(v+incr), float64(u)+1.5), edge.a, edge.b, edge.c, incr, v)
+			img.Set(v, u, fillColor)
 			if incr > 0 && edge.evaluate(float64(v+incr), float64(u)+1.5) > 0 {
 				v += incr
 			} else if incr < 0 && edge.evaluate(float64(v+incr), float64(u)+1.5) < 0 {
 				v += incr
 			}
 		} else {
-			img.Set(u, v, color.White)
-			fmt.Println(edge.evaluate(float64(u)+1.5, float64(v+incr)), edge.a, edge.b, edge.c, incr, v)
+			img.Set(u, v, fillColor)
 			if incr > 0 && edge.evaluate(float64(u)+1.5, float64(v+incr)) < 0 {
 				v += incr
 			} else if incr < 0 && edge.evaluate(float64(u)+1.5, float64(v+incr)) > 0 {

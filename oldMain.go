@@ -110,14 +110,6 @@ func main2341() {
 	f.Close()
 }
 
-func main3() {
-	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	drawLine(1, 1, 50, 40, img)
-	f, _ := os.Create("out.png")
-	png.Encode(f, img)
-	f.Close()
-}
-
 // initGlfw initializes glfw and returns a Window to use.
 func initGlfw() *glfw.Window {
 	if err := glfw.Init(); err != nil {

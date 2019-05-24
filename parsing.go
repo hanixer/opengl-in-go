@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
-	xq "github.com/antchfx/xquery/xml"
-	"github.com/go-gl/mathgl/mgl64"
 	"image/color"
 	"io"
 	"strconv"
 	"strings"
+	"unicode"
+
+	xq "github.com/antchfx/xquery/xml"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 func makeXMLDoc(r io.Reader) *xq.Node {
@@ -58,7 +59,6 @@ func parseSvg(node *xq.Node) *svg {
 
 	for child := firstElementChild(node); child != nil; child = firstElementSibling(child) {
 		if child.Data == "svg" {
-			fmt.Println(child.Data)
 			svg.width = parseFloat(child, "width")
 			svg.height = parseFloat(child, "height")
 			svg.elements = parseChildren(child)
@@ -161,14 +161,18 @@ func parsePoints(s string) []mgl64.Vec2 {
 	return points
 }
 
+func goodRune(r rune) bool {
+	return !(unicode.IsDigit(r) || r == '.')
+}
+
 func parseFloatString(s string) (v float64) {
+	s = strings.TrimFunc(s, goodRune)
+
 	if strings.Contains(s, ".") {
 		v, _ = strconv.ParseFloat(s, 64)
-		fmt.Println("floating", v, s)
 	} else {
 		i, _ := strconv.Atoi(s)
 		v = float64(i)
-		fmt.Println("integering", i, s)
 	}
 	return
 }

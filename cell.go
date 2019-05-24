@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
@@ -39,7 +38,6 @@ type cell struct {
 type cellsSet [][]*cell
 
 func (c *cell) draw() {
-	fmt.Println("IJIJIJ")
 	gl.BindVertexArray(c.drawable)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square)/3))
 }

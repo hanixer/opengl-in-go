@@ -17,7 +17,7 @@ func drawElements(elements []svgElement, img draw.Image) {
 	for _, elem := range elements {
 		switch v := elem.(type) {
 		case *svgLine:
-			drawLineF(v.from.X(), v.from.Y(), v.to.X(), v.to.Y(), img)
+			drawLineF(v.from.X(), v.from.Y(), v.to.X(), v.to.Y(), img, v.data.style.strokeColor)
 		}
 	}
 }
