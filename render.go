@@ -21,21 +21,19 @@ type edgeEquation struct {
 	a, b, c float64
 }
 
-// v1 - v0
-// n2 = -(v1y - v0y), (v1x - v0x)
-// p0 = v0
-// n * ((x, y) - v0)
-// -(v1y - v0y) * (x - v0x) + (v1x - v0x) * (y - v0y)
-// -(v1y - v0y) * x - -(v1y - v0y) * v0x + (v1x - v0x) * y - (v1x - v0x) * v0y
-// a = -(v1y - v0y)
-// b = (v1x - v0x)
-// c = - -(v1y - v0y) * v0x - (v1x - v0x) * v0y
 func newEdgeEquation(v0, v1 vertex) edgeEquation {
 	var eq edgeEquation
 	eq.a = v0.y - v1.y
 	eq.b = v1.x - v0.x
-	eq.c = -(eq.a*v0.x + eq.b*v0.y)
+	eq.c = v0.x*v1.y - v1.x*v0.y
 	return eq
+}
+func newEdgeEquationInt(x0, y0, x1, y1 int) edgeEquation {
+	var e edgeEquation
+	e.a = float64(y0 - y1)
+	e.b = float64(x1 - x0)
+	e.c = float64(x0*y1 - x1*y0)
+	return e
 }
 
 // v0 = (0, 0)
@@ -114,13 +112,83 @@ func drawLineF(x0, y0, x1, y1 float64, img draw.Image) {
 }
 
 func drawLine(x0, y0, x1, y1 int, img draw.Image) {
-	y := y0
-	edge := newEdgeEquation(vertex{x: float64(x0), y: float64(y0)}, vertex{x: float64(x1), y: float64(y1)})
+	steep := false
+	incr := 1
+	if x1-x0 == 0 {
+		incr = 1
+		steep = true
+	} else if slope := float64(y1-y0) / float64(x1-x0); slope > 1.0 {
+		// incr +
+		// drawVertical
+		incr = 1
+		steep = true
+	} else if slope >= 0.0 {
+		// incr ++
+		// horizontal
+		incr = 1
+		steep = false
+	} else if slope > -1.0 {
+		// incr --
+		// horizontal
+		incr = -1
+		steep = false
+	} else if slope <= 1.0 {
+		// incr --
+		incr = -1
+		steep = true
+	}
 
+	var u0, u1, v0, v1, edge = chooseEndPoints(steep, x0, x1, y0, y1)
+	v1++
+	v1--
+
+	d := edge.evaluate(float64(x0)+0.5, float64(y0)+0.5)
+
+	v := v0
+	for u := u0; u <= u1; u++ {
+		if steep {
+			img.Set(v, u, color.White)
+			if edge.evaluate(float64(v+incr), float64(u)+1.5) > 0 {
+				v += incr
+			}
+			// d += edge.a
+			// if d <= 0.0 {
+			// 	d += edge.b * float64(incr)
+			// 	v += incr
+			// }
+		} else {
+			img.Set(u, v, color.White)
+			d += edge.a
+			if d <= 0.0 {
+				d += edge.b * float64(incr)
+				v += incr
+			}
+		}
+	}
+}
+
+func chooseEndPoints(steep bool, x0, x1, y0, y1 int) (int, int, int, int, edgeEquation) {
+	if steep {
+		if y0 < y1 {
+			return y0, y1, x0, x1, newEdgeEquationInt(y0, x0, y1, x1)
+		}
+		return y1, y0, x1, x0, newEdgeEquationInt(y1, x1, y0, x0)
+	}
+
+	if x0 < x1 {
+		return x0, x1, y0, y1, newEdgeEquationInt(x0, y0, x1, y1)
+	}
+	return x1, x0, y1, y0, newEdgeEquationInt(x1, y1, x0, y0)
+}
+
+func drawLineHorizontal(d float64, edge edgeEquation, img draw.Image, x0, x1, y0, y1, incr int) {
+	y := y0
 	for x := x0; x <= x1; x++ {
-		img.Set(x, y, color.Black)
-		if !edge.test(float64(x), float64(y)) {
-			y++
+		img.Set(x, y, color.White)
+		d += edge.a
+		if d <= 0.0 {
+			d += edge.b
+			y += incr
 		}
 	}
 }
