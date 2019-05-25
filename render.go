@@ -30,6 +30,15 @@ func newEdgeEquation(v0, v1 vertex) edgeEquation {
 	eq.c = v0.x*v1.y - v1.x*v0.y
 	return eq
 }
+
+func newEdgeEquation2(v0, v1 mgl64.Vec2) edgeEquation {
+	var eq edgeEquation
+	eq.a = v0.Y() - v1.Y()
+	eq.b = v1.X() - v0.X()
+	eq.c = v0.X()*v1.Y() - v1.X()*v0.Y()
+	return eq
+}
+
 func newEdgeEquationInt(x0, y0, x1, y1 int) edgeEquation {
 	var e edgeEquation
 	e.a = float64(y0 - y1)
