@@ -130,15 +130,17 @@ func drawSvgPolygon(polygon *svgPolygon, img draw.Image) {
 	triangles := triangulate(polygon.points)
 
 	for i := 0; i+2 < len(triangles); i += 3 {
-		drawTriangle2(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor)
+		fillTriangle2(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor)
 
 		// drawLinePoints(triangles[i], triangles[i+1], img, polygon.data.style.strokeColor)
 		// drawLinePoints(triangles[i+1], triangles[i+2], img, polygon.data.style.strokeColor)
 	}
 
-	ps := polygon.points
-	for i := 0; i < len(ps); i++ {
-		// fmt.Println(ps[i], ps[(i+1)%len(ps)])
-		drawLinePoints(ps[i], ps[(i+1)%len(ps)], img, polygon.data.style.strokeColor)
+	if polygon.data.style.strokeColor.A != 0 {
+		ps := polygon.points
+		for i := 0; i < len(ps); i++ {
+			// fmt.Println(ps[i], ps[(i+1)%len(ps)])
+			drawLinePoints(ps[i], ps[(i+1)%len(ps)], img, polygon.data.style.strokeColor)
+		}
 	}
 }

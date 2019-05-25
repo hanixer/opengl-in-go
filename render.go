@@ -89,11 +89,11 @@ func vert(x, y float64) vertex { return vertex{x: x, y: y} }
 
 func convertVertex(v mgl64.Vec2) vertex { return vertex{x: v.X(), y: v.Y()} }
 
-func drawTriangle2(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color) {
-	drawTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c)
+func fillTriangle2(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color) {
+	fillTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c)
 }
 
-func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
+func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 	minX, minY, maxX, maxY := boundingBox(v0, v1, v2)
 
 	e0 := newEdgeEquation(v1, v2)
@@ -103,7 +103,6 @@ func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 	k0 := 1.0 / e0.evaluate(v0.x, v0.y)
 	k1 := 1.0 / e1.evaluate(v1.x, v1.y)
 	k2 := 1.0 / e2.evaluate(v2.x, v2.y)
-
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
 			// compute baricentric coordinates
@@ -111,12 +110,9 @@ func drawTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 			w1 := k1 * e1.evaluate(x, y)
 			w2 := k2 * e2.evaluate(x, y)
 
-			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-				r := v0.r*w0 + v1.r*w1 + v2.r*w2
-				g := v0.g*w0 + v1.g*w1 + v2.g*w2
-				b := v0.b*w0 + v1.b*w1 + v2.b*w2
-				colo := makeColor(r, g, b)
-				colo.RGBA()
+			// fmt.Printf("x = %v; y = %v; k0 = %v; w0 = %v; w1 = %v; w2 = %v\n", x, y, k0, w0, w1, w2)
+
+			if w0 >= -0.0 && w1 >= -0.0 && w2 >= -0.0 {
 				img.Set(int(x), int(y), c)
 			}
 		}

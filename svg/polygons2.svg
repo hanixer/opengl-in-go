@@ -6,6 +6,5 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="165px" height="250px" viewBox="0 0 165 250" enable-background="new 0 0 165 250" xml:space="preserve">
 	<!-- <polygon fill="#8c1515" stroke="#8c1515" stroke-miterlimit="10" points="0,0 50,50 100,0 50,25 "/>
 	<polygon fill="#1c0505" stroke="#8c1515" stroke-miterlimit="10" points="0,0 0,50 50,50 50,10 40,10 40,40 20,40 20,0"/> -->
-	<!-- <polygon fill="#1c0505" stroke="#8c1515" stroke-miterlimit="10" points="0,0 0,50 50,50 50,40 10,40 10,0"/> -->
-	<line fill="#1c0505" stroke="#8c1515" x1="0" y1="50" x2="50" y2="40" />
+	<polygon fill="#1c0505" stroke-miterlimit="10" points="0,0 100,5 100,0"/>
 </svg>
