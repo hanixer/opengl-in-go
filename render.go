@@ -111,8 +111,8 @@ func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 			w2 := k2 * e2.evaluate(x, y)
 
 			// fmt.Printf("x = %v; y = %v; k0 = %v; w0 = %v; w1 = %v; w2 = %v\n", x, y, k0, w0, w1, w2)
-
-			if w0 >= -0.0 && w1 >= -0.0 && w2 >= -0.0 {
+			const eps = -0.000001
+			if w0 >= eps && w1 >= eps && w2 >= eps {
 				img.Set(int(x), int(y), c)
 			}
 		}

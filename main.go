@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var defaultInputSvg = `svg\hardcore\01_degenerate_square1.svg`
+var defaultInputSvg = `svg\polygons2.svg`
 
 func main() {
 	data, err := ioutil.ReadFile(defaultInputSvg)

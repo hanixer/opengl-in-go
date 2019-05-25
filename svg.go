@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -111,7 +110,6 @@ func drawSvg(svg *svg) draw.Image {
 }
 
 func drawElements(elements []svgElement, img draw.Image) {
-	fmt.Println(len(elements))
 	for _, elem := range elements {
 		switch v := elem.(type) {
 		case *svgLine:
@@ -128,10 +126,11 @@ func drawElements(elements []svgElement, img draw.Image) {
 
 func drawSvgPolygon(polygon *svgPolygon, img draw.Image) {
 	triangles := triangulate(polygon.points)
-
 	for i := 0; i+2 < len(triangles); i += 3 {
 		fillTriangle2(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor)
-
+		if i > len(triangles)/2 {
+			return
+		}
 		// drawLinePoints(triangles[i], triangles[i+1], img, polygon.data.style.strokeColor)
 		// drawLinePoints(triangles[i+1], triangles[i+2], img, polygon.data.style.strokeColor)
 	}
