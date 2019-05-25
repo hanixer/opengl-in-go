@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 	"image/draw"
+	"math"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -78,6 +79,12 @@ func boundingBox(v0, v1, v2 vertex) (x0, y0, x1, y1 float64) {
 	y0 = min(min(v0.y, v1.y), v2.y)
 	x1 = max(max(v0.x, v1.x), v2.x)
 	y1 = max(max(v0.y, v1.y), v2.y)
+
+	x0 = math.Floor(x0)
+	y0 = math.Floor(y0)
+	x1 = math.Ceil(x1)
+	y1 = math.Ceil(y1)
+
 	return
 }
 
@@ -111,8 +118,7 @@ func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 			w2 := k2 * e2.evaluate(x, y)
 
 			// fmt.Printf("x = %v; y = %v; k0 = %v; w0 = %v; w1 = %v; w2 = %v\n", x, y, k0, w0, w1, w2)
-			const eps = -0.000001
-			if w0 >= eps && w1 >= eps && w2 >= eps {
+			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
 				img.Set(int(x), int(y), c)
 			}
 		}

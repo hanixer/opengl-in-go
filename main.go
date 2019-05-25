@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var defaultInputSvg = `svg\polygons2.svg`
+var defaultInputSvg = `svg\subdiv\triangle6.svg`
 
 func main() {
 	data, err := ioutil.ReadFile(defaultInputSvg)
