@@ -11,7 +11,7 @@ type listNode struct {
 }
 
 // make a double linked list of point from a slice
-func constructList(points []mgl64.Vec2) *listNode {
+func constructList(points []mgl64.Vec2, reverse bool) *listNode {
 	var prev, head *listNode
 	for _, point := range points {
 		curr := new(listNode)
@@ -27,6 +27,15 @@ func constructList(points []mgl64.Vec2) *listNode {
 	}
 	prev.next = head
 	head.prev = prev
+	if reverse {
+		node := head
+		for i := 0; i < len(points); i++ {
+			next := node.next
+			node.next = node.prev
+			node.prev = next
+			node = next
+		}
+	}
 	return head
 }
 
@@ -35,7 +44,8 @@ func constructList(points []mgl64.Vec2) *listNode {
 // implementation uses ear cutting method
 func triangulate(points []mgl64.Vec2) []mgl64.Vec2 {
 	result := []mgl64.Vec2{}
-	node := constructList(points)
+	reverse := shouldReverse(points)
+	node := constructList(points, reverse)
 	listSize := len(points)
 
 	for listSize > 2 {
@@ -55,6 +65,28 @@ func triangulate(points []mgl64.Vec2) []mgl64.Vec2 {
 	}
 
 	return result
+}
+
+// shouldReverse returns true if we need to reverse order of points
+// before triangulation
+func shouldReverse(points []mgl64.Vec2) bool {
+	point := points[0]
+	index := 0
+	for i := 1; i < len(points); i++ {
+		if points[i].X() < point.X() && points[i].Y() < point.Y() {
+			point = points[i]
+			index = i
+		}
+	}
+	var p0, p1, p2 mgl64.Vec2
+	if index == 0 {
+		p0 = points[len(points)-1]
+	} else {
+		p0 = points[index-1]
+	}
+	p1 = points[index]
+	p2 = points[(index+1)%len(points)]
+	return !isConvexAngle(p0, p1, p2)
 }
 
 // findEar returns a "tip of ear", i.e. if points p0, p1, p2 forms a "ear" triangle

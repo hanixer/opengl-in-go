@@ -11,13 +11,25 @@ func Test_constructList(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		p1, p2, p3 := mgl64.Vec2{1, 1}, mgl64.Vec2{2, 2}, mgl64.Vec2{3, 3}
 		points := []mgl64.Vec2{p1, p2, p3}
-		res := constructList(points)
+		res := constructList(points, false)
 		assert.Equal(t, p1, res.point)
 		assert.Equal(t, p2, res.next.point)
 		assert.Equal(t, p3, res.next.next.point)
 		assert.Equal(t, p1, res.next.next.next.point)
 		assert.Equal(t, p3, res.prev.point)
 		assert.Equal(t, p2, res.prev.prev.point)
+		assert.Equal(t, p1, res.prev.prev.prev.point)
+	})
+	t.Run("", func(t *testing.T) {
+		p1, p2, p3 := mgl64.Vec2{1, 1}, mgl64.Vec2{2, 2}, mgl64.Vec2{3, 3}
+		points := []mgl64.Vec2{p1, p2, p3}
+		res := constructList(points, true)
+		assert.Equal(t, p1, res.point)
+		assert.Equal(t, p3, res.next.point)
+		assert.Equal(t, p2, res.next.next.point)
+		assert.Equal(t, p1, res.next.next.next.point)
+		assert.Equal(t, p2, res.prev.point)
+		assert.Equal(t, p3, res.prev.prev.point)
 		assert.Equal(t, p1, res.prev.prev.prev.point)
 	})
 }
