@@ -9,7 +9,7 @@ import (
 
 var defaultInputSvg = `svg\subdiv\triangle1.svg`
 
-func main() {
+func main5() {
 	data, err := ioutil.ReadFile(defaultInputSvg)
 	if err != nil {
 		log.Fatalln(err)

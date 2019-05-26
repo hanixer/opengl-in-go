@@ -3,14 +3,10 @@ package main
 import (
 	"fmt"
 	"image"
-	"image/color"
-	"image/draw"
-	"image/png"
+	"io/ioutil"
 	"log"
-	"os"
 	"runtime"
 	"strings"
-	"unsafe"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -59,13 +55,23 @@ var (
 	}
 )
 
-func main5() {
+func main() {
 	runtime.LockOSThread()
 	window := initGlfw()
 	defer glfw.Terminate()
 	program := initOpenGL()
 	vao := makeVao(vertexData)
 	texture := makeTexture()
+
+	data, err := ioutil.ReadFile(defaultInputSvg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	svgData := parseSvgString(string(data))
+	img := drawSvg(svgData)
+	swapVertically(img)
+	updateTexture(texture, img)
+	// window.SetSize(int(svgData.width), int(svgData.height))
 
 	gl.UseProgram(program)
 
@@ -78,7 +84,6 @@ func main5() {
 		gl.BindTexture(gl.TEXTURE_2D, texture)
 		gl.BindVertexArray(vao)
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-
 		glfw.PollEvents()
 		window.SwapBuffers()
 	}
@@ -100,8 +105,16 @@ func initGlfw() *glfw.Window {
 		panic(err)
 	}
 	window.MakeContextCurrent()
+	window.SetKeyCallback(keyCallBack)
 
 	return window
+}
+
+func keyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+	if key == glfw.KeyMinus && action == glfw.Release {
+		fmt.Println("Minus pressed!")
+	}
+
 }
 
 func initOpenGL() uint32 {
@@ -125,27 +138,17 @@ func initOpenGL() uint32 {
 	return prog
 }
 
-func draw123(window *glfw.Window, program uint32, vao uint32) {
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(program)
+func makeTexture() uint32 {
+	var texture uint32
+	gl.GenTextures(1, &texture)
 
-	gl.BindVertexArray(vao)
-	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.Ptr(0))
-
-	glfw.PollEvents()
-	window.SwapBuffers()
+	return texture
 }
 
-func makeTexture() uint32 {
-	f, _ := os.Open("1.png")
-	img2, _ := png.Decode(f)
-
-	img := image.NewRGBA(img2.Bounds())
-	draw.Draw(img, img.Bounds(), img2, image.ZP, draw.Src)
-
+func swapVertically(img *image.RGBA) {
 	height := img.Bounds().Dy()
 	stride := make([]uint8, img.Stride)
-	for row := 0; row < height; row++ {
+	for row := 0; row < height/2; row++ {
 		mirrorRow := height - row - 1
 		strideCurrent := img.Pix[row*img.Stride : row*img.Stride+img.Stride]
 		strideMirror := img.Pix[mirrorRow*img.Stride : mirrorRow*img.Stride+img.Stride]
@@ -153,25 +156,17 @@ func makeTexture() uint32 {
 		copy(strideCurrent, strideMirror)
 		copy(strideMirror, stride)
 	}
+}
 
-	c := image.NewUniform(color.RGBA{30, 100, 40, 255})
-	for i := 0; i < 20; i += 2 {
-		r := image.Rect(30, i+10, 60, i+20)
-		draw.Draw(img, r, c, image.ZP, draw.Src)
-	}
-
-	ptr := &img.Pix[0]
-	var texture uint32
-	gl.GenTextures(1, &texture)
+func updateTexture(texture uint32, img *image.RGBA) {
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
 		int32(img.Bounds().Dx()), int32(img.Bounds().Dy()), 0,
-		gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(ptr))
+		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(img.Pix))
 	gl.GenerateMipmap(gl.TEXTURE_2D)
-	return texture
 }
 
 func makeVao(points []float32) uint32 {

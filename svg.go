@@ -102,7 +102,7 @@ type svg struct {
 	elements      []svgElement
 }
 
-func drawSvg(svg *svg) draw.Image {
+func drawSvg(svg *svg) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, int(svg.width), int(svg.height)))
 	drawElements(svg.elements, img)
 
