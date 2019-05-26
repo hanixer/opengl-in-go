@@ -84,32 +84,6 @@ func main5() {
 	}
 }
 
-func main11() {
-	img := image.NewRGBA(image.Rect(0, 0, 200, 200))
-	v0 := vertex{x: 50, y: 100}
-	v1 := vertex{x: 100, y: 100}
-	v2 := vertex{x: 100, y: 50}
-	fillTriangle(v0, v1, v2, img, color.Black)
-	v3 := vertex{x: 50, y: 100}
-	v4 := vertex{x: 100, y: 50}
-	v5 := vertex{x: 50, y: 50}
-	fillTriangle(v3, v4, v5, img, color.White)
-	f, _ := os.Create("out.png")
-	png.Encode(f, img)
-	f.Close()
-}
-
-func main2341() {
-	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	v0 := vertex{x: 0, y: 5, r: 1.0}
-	v1 := vertex{x: 5, y: 5, g: 1.0}
-	v2 := vertex{x: 0, y: 0, b: 1.0}
-	fillTriangle(v0, v1, v2, img, color.Black)
-	f, _ := os.Create("out.png")
-	png.Encode(f, img)
-	f.Close()
-}
-
 // initGlfw initializes glfw and returns a Window to use.
 func initGlfw() *glfw.Window {
 	if err := glfw.Init(); err != nil {

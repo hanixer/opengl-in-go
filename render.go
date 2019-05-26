@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"image/draw"
 	"math"
+	"math/rand"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -56,6 +57,10 @@ func (edge edgeEquation) evaluate(x, y float64) float64 {
 	return edge.a*x + edge.b*y + edge.c
 }
 
+func (edge edgeEquation) evaluateP(p mgl64.Vec2) float64 {
+	return edge.evaluate(p.X(), p.Y())
+}
+
 type parameterEquation struct {
 	a, b, c float64
 }
@@ -97,10 +102,22 @@ func vert(x, y float64) vertex { return vertex{x: x, y: y} }
 func convertVertex(v mgl64.Vec2) vertex { return vertex{x: v.X(), y: v.Y()} }
 
 func fillTriangle2(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color) {
-	fillTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c)
+	fillTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c, 1)
 }
 
-func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
+func makeSamples(samples []mgl64.Vec2, x, y float64, n int) {
+	frac := 1.0 / float64(n)
+	for i := 0.0; i < float64(n); i++ {
+		for j := 0.0; j < float64(n); j++ {
+			xx := x + j*frac + rand.Float64()*frac
+			yy := y + i*frac + rand.Float64()*frac
+			samples[int(i)*n+int(j)][0] = xx
+			samples[int(i)*n+int(j)][1] = yy
+		}
+	}
+}
+
+func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color, samplesCount int) {
 	minX, minY, maxX, maxY := boundingBox(v0, v1, v2)
 
 	e0 := newEdgeEquation(v1, v2)
@@ -110,19 +127,43 @@ func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color) {
 	k0 := 1.0 / e0.evaluate(v0.x, v0.y)
 	k1 := 1.0 / e1.evaluate(v1.x, v1.y)
 	k2 := 1.0 / e2.evaluate(v2.x, v2.y)
+
+	samples := make([]mgl64.Vec2, samplesCount*samplesCount)
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
-			// compute baricentric coordinates
-			w0 := k0 * e0.evaluate(x, y)
-			w1 := k1 * e1.evaluate(x, y)
-			w2 := k2 * e2.evaluate(x, y)
-
-			// fmt.Printf("x = %v; y = %v; k0 = %v; w0 = %v; w1 = %v; w2 = %v\n", x, y, k0, w0, w1, w2)
-			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-				img.Set(int(x), int(y), c)
+			var colorAcc color.RGBA64
+			makeSamples(samples, x, y, samplesCount)
+			for _, p := range samples {
+				// compute baricentric coordinates
+				w0 := k0 * e0.evaluateP(p)
+				w1 := k1 * e1.evaluateP(p)
+				w2 := k2 * e2.evaluateP(p)
+				if w0 >= 0 && w1 >= 0 && w2 >= 0 {
+					addColor(&colorAcc, c)
+				}
+			}
+			divideColor(&colorAcc, samplesCount)
+			if colorAcc.A != 0 {
+				img.Set(int(x), int(y), colorAcc)
 			}
 		}
+
 	}
+}
+
+func addColor(colorAccum *color.RGBA64, c color.Color) {
+	r, g, b, a := c.RGBA()
+	colorAccum.R += uint16(r)
+	colorAccum.G += uint16(g)
+	colorAccum.B += uint16(b)
+	colorAccum.A += uint16(a)
+}
+
+func divideColor(colorAccum *color.RGBA64, samplesCount int) {
+	colorAccum.R /= uint16(samplesCount)
+	colorAccum.G /= uint16(samplesCount)
+	colorAccum.B /= uint16(samplesCount)
+	colorAccum.A /= uint16(samplesCount)
 }
 
 func drawLinePoints(p0, p1 mgl64.Vec2, img draw.Image, fillColor color.Color) {
