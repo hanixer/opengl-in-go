@@ -104,6 +104,9 @@ type svg struct {
 
 func drawSvg(svg *svg, samplesCount int) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, int(svg.width), int(svg.height)))
+
+	draw.Draw(img, img.Bounds(), image.NewUniform(color.RGBA{50, 200, 50, 255}), image.ZP, draw.Src)
+
 	drawElements(svg.elements, img, samplesCount)
 
 	return img
