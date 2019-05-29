@@ -89,6 +89,10 @@ func parseChildren(node *xq.Node) []svgElement {
 			polygon := parsePolygon(child)
 			polygon.data = parseElementData(child)
 			children = append(children, &polygon)
+		} else if child.Data == "polyline" {
+			polyline := parsePolyline(child)
+			polyline.data = parseElementData(child)
+			children = append(children, &polyline)
 		} else if child.Data == "g" {
 			group := parseGroup(child)
 			group.data = parseElementData(child)
@@ -141,6 +145,12 @@ func parseRect(node *xq.Node) (r svgRect) {
 }
 
 func parsePolygon(node *xq.Node) (pg svgPolygon) {
+	p := node.SelectAttr("points")
+	pg.points = parsePoints(p)
+	return
+}
+
+func parsePolyline(node *xq.Node) (pg svgPolyline) {
 	p := node.SelectAttr("points")
 	pg.points = parsePoints(p)
 	return

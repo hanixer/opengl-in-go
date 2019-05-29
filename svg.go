@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
+	"time"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -69,6 +71,8 @@ type svgPolyline struct {
 	points []mgl64.Vec2
 }
 
+func (g *svgPolyline) isSvg() {}
+
 type svgRect struct {
 	data      svgElementData
 	position  mgl64.Vec2
@@ -104,11 +108,9 @@ type svg struct {
 
 func drawSvg(svg *svg, samplesCount int) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, int(svg.width), int(svg.height)))
-
-	draw.Draw(img, img.Bounds(), image.NewUniform(color.RGBA{50, 200, 50, 255}), image.ZP, draw.Src)
-
+	now := time.Now()
 	drawElements(svg.elements, img, samplesCount)
-
+	fmt.Println("render time", time.Now().Sub(now).Seconds())
 	return img
 }
 
@@ -121,9 +123,19 @@ func drawElements(elements []svgElement, img draw.Image, samplesCount int) {
 			drawPoint(v.position.X(), v.position.Y(), img, v.data.style.strokeColor)
 		case *svgPolygon:
 			drawSvgPolygon(v, img, samplesCount)
+		case *svgPolyline:
+			drawSvgPolyline(v, img, samplesCount)
 		case *svgGroup:
 			drawElements(v.elements, img, samplesCount)
 		}
+	}
+}
+
+func drawSvgPolyline(polyline *svgPolyline, img draw.Image, samplesCount int) {
+	for i := 0; i < len(polyline.points); i++ {
+		p0 := polyline.points[i]
+		p1 := polyline.points[(i+1)%len(polyline.points)]
+		drawLineF(p0.X(), p0.Y(), p1.X(), p1.Y(), img, polyline.data.style.strokeColor)
 	}
 }
 

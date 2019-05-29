@@ -2,30 +2,42 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"image/png"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
-var defaultInputSvg = `svg\illustration\06_sphere.svg`
+var defaultInputSvg = `svg\illustration\02_hexes.svg`
 var samplesCount = 1
 var texture uint32
 var window *glfw.Window
+var svgPaths []string
+var svgIndex int
+var loadOnlyDefault = true
 
-func main5() {
-	// data, err := ioutil.ReadFile(defaultInputSvg)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// n := parseSvgString(string(data))
-	// img := drawSvg(n)
-	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+func walkPath(path string, info os.FileInfo, err error) error {
+	if strings.HasSuffix(path, ".svg") {
+		fmt.Println(path)
+		svgPaths = append(svgPaths, path)
+	}
+	return nil
+}
+
+func main55() {
+	data, err := ioutil.ReadFile(defaultInputSvg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	n := parseSvgString(string(data))
+	img := drawSvg(n, samplesCount)
+	// img := image.NewRGBA(image.Rect(0, 0, 100, 100))
 
 	// numSamples := 10
 	// samples := make([]mgl64.Vec2, numSamples*numSamples)
@@ -44,13 +56,16 @@ func main5() {
 
 func main() {
 	runtime.LockOSThread()
+
+	filepath.Walk("svg", walkPath)
+
 	window = initGlfw()
 	defer glfw.Terminate()
 	program := initOpenGL()
 	vao := makeVao(vertexData)
 	texture = makeTexture()
 
-	updateSvg()
+	updateSvg(svgPaths[svgIndex])
 
 	gl.UseProgram(program)
 
@@ -58,7 +73,6 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		gl.UseProgram(program)
 
-		// draw(window, prog)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, texture)
 		gl.BindVertexArray(vao)
@@ -69,8 +83,9 @@ func main() {
 	}
 }
 
-func updateSvg() {
-	data, err := ioutil.ReadFile(defaultInputSvg)
+func updateSvg(svgPath string) {
+	window.SetTitle(svgPath)
+	data, err := ioutil.ReadFile(svgPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -91,7 +106,6 @@ func updateSvg() {
 }
 
 func sizeCallback(_ *glfw.Window, w int, h int) {
-	fmt.Println("size")
 	gl.Viewport(0, 0, int32(w), int32(h))
 }
 
@@ -100,18 +114,27 @@ func keyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 		if key == glfw.KeyMinus {
 			if samplesCount > 1 {
 				samplesCount--
-				updateSvg()
+				updateSvg(svgPaths[svgIndex])
 			}
 		} else if key == glfw.KeyBackspace {
 			samplesCount++
 			fmt.Println(samplesCount)
-			updateSvg()
+			updateSvg(svgPaths[svgIndex])
 		} else if key == glfw.KeyR {
 			w, h := window.GetSize()
 			window.SetSize(w+100, h+100)
 		} else if key == glfw.KeyS {
 			w, h := window.GetSize()
 			window.SetSize(w-100, h-100)
+		} else if key == glfw.KeyLeft {
+			svgIndex--
+			if svgIndex < 0 {
+				svgIndex = len(svgPaths) - 1
+			}
+			updateSvg(svgPaths[svgIndex])
+		} else if key == glfw.KeyRight {
+			svgIndex = (svgIndex + 1) % len(svgPaths)
+			updateSvg(svgPaths[svgIndex])
 		}
 	}
 }
