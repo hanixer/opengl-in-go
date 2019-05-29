@@ -14,7 +14,7 @@ import (
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
-var defaultInputSvg = `svg\illustration\02_hexes.svg`
+var defaultInputSvg = `svg\hexes.svg`
 var samplesCount = 1
 var texture uint32
 var window *glfw.Window
@@ -24,7 +24,6 @@ var loadOnlyDefault = true
 
 func walkPath(path string, info os.FileInfo, err error) error {
 	if strings.HasSuffix(path, ".svg") {
-		fmt.Println(path)
 		svgPaths = append(svgPaths, path)
 	}
 	return nil
@@ -65,7 +64,7 @@ func main() {
 	vao := makeVao(vertexData)
 	texture = makeTexture()
 
-	updateSvg(svgPaths[svgIndex])
+	updateSvg()
 
 	gl.UseProgram(program)
 
@@ -83,7 +82,14 @@ func main() {
 	}
 }
 
-func updateSvg(svgPath string) {
+func updateSvg() {
+	var svgPath string
+	if loadOnlyDefault {
+		svgPath = defaultInputSvg
+	} else {
+		svgPath = svgPaths[svgIndex]
+	}
+
 	window.SetTitle(svgPath)
 	data, err := ioutil.ReadFile(svgPath)
 	if err != nil {
@@ -114,12 +120,12 @@ func keyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 		if key == glfw.KeyMinus {
 			if samplesCount > 1 {
 				samplesCount--
-				updateSvg(svgPaths[svgIndex])
+				updateSvg()
 			}
 		} else if key == glfw.KeyBackspace {
 			samplesCount++
 			fmt.Println(samplesCount)
-			updateSvg(svgPaths[svgIndex])
+			updateSvg()
 		} else if key == glfw.KeyR {
 			w, h := window.GetSize()
 			window.SetSize(w+100, h+100)
@@ -131,10 +137,10 @@ func keyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action,
 			if svgIndex < 0 {
 				svgIndex = len(svgPaths) - 1
 			}
-			updateSvg(svgPaths[svgIndex])
+			updateSvg()
 		} else if key == glfw.KeyRight {
 			svgIndex = (svgIndex + 1) % len(svgPaths)
-			updateSvg(svgPaths[svgIndex])
+			updateSvg()
 		}
 	}
 }
