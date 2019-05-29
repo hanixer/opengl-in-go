@@ -101,8 +101,8 @@ func vert(x, y float64) vertex { return vertex{x: x, y: y} }
 
 func convertVertex(v mgl64.Vec2) vertex { return vertex{x: v.X(), y: v.Y()} }
 
-func fillTriangle2(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color) {
-	fillTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c, 1)
+func fillTriangle2(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color, samplesCount int) {
+	fillTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c, samplesCount)
 }
 
 func makeSamples(samples []mgl64.Vec2, x, y float64, n int) {
@@ -131,7 +131,7 @@ func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color, samplesCount
 	samples := make([]mgl64.Vec2, samplesCount*samplesCount)
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
-			var colorAcc color.RGBA64
+			var colorAcc [4]uint64
 			makeSamples(samples, x, y, samplesCount)
 			for _, p := range samples {
 				// compute baricentric coordinates
@@ -142,28 +142,30 @@ func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color, samplesCount
 					addColor(&colorAcc, c)
 				}
 			}
-			divideColor(&colorAcc, samplesCount)
-			if colorAcc.A != 0 {
-				img.Set(int(x), int(y), colorAcc)
+			divideColor(&colorAcc, samplesCount*samplesCount)
+			if colorAcc[3] != 0 {
+				c64 := color.RGBA64{uint16(colorAcc[0]), uint16(colorAcc[1]),
+					uint16(colorAcc[2]), uint16(colorAcc[3])}
+				img.Set(int(x), int(y), c64)
 			}
 		}
 
 	}
 }
 
-func addColor(colorAccum *color.RGBA64, c color.Color) {
+func addColor(colorAccum *[4]uint64, c color.Color) {
 	r, g, b, a := c.RGBA()
-	colorAccum.R += uint16(r)
-	colorAccum.G += uint16(g)
-	colorAccum.B += uint16(b)
-	colorAccum.A += uint16(a)
+	colorAccum[0] += uint64(r)
+	colorAccum[1] += uint64(g)
+	colorAccum[2] += uint64(b)
+	colorAccum[3] += uint64(a)
 }
 
-func divideColor(colorAccum *color.RGBA64, samplesCount int) {
-	colorAccum.R /= uint16(samplesCount)
-	colorAccum.G /= uint16(samplesCount)
-	colorAccum.B /= uint16(samplesCount)
-	colorAccum.A /= uint16(samplesCount)
+func divideColor(colorAccum *[4]uint64, samplesCount int) {
+	colorAccum[0] /= uint64(samplesCount)
+	colorAccum[1] /= uint64(samplesCount)
+	colorAccum[2] /= uint64(samplesCount)
+	colorAccum[3] /= uint64(samplesCount)
 }
 
 func drawLinePoints(p0, p1 mgl64.Vec2, img draw.Image, fillColor color.Color) {

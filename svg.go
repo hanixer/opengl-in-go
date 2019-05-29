@@ -102,14 +102,14 @@ type svg struct {
 	elements      []svgElement
 }
 
-func drawSvg(svg *svg) *image.RGBA {
+func drawSvg(svg *svg, samplesCount int) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, int(svg.width), int(svg.height)))
-	drawElements(svg.elements, img)
+	drawElements(svg.elements, img, samplesCount)
 
 	return img
 }
 
-func drawElements(elements []svgElement, img draw.Image) {
+func drawElements(elements []svgElement, img draw.Image, samplesCount int) {
 	for _, elem := range elements {
 		switch v := elem.(type) {
 		case *svgLine:
@@ -117,17 +117,17 @@ func drawElements(elements []svgElement, img draw.Image) {
 		case *svgPoint:
 			drawPoint(v.position.X(), v.position.Y(), img, v.data.style.strokeColor)
 		case *svgPolygon:
-			drawSvgPolygon(v, img)
+			drawSvgPolygon(v, img, samplesCount)
 		case *svgGroup:
-			drawElements(v.elements, img)
+			drawElements(v.elements, img, samplesCount)
 		}
 	}
 }
 
-func drawSvgPolygon(polygon *svgPolygon, img draw.Image) {
+func drawSvgPolygon(polygon *svgPolygon, img draw.Image, samplesCount int) {
 	triangles := triangulate(polygon.points)
 	for i := 0; i+2 < len(triangles); i += 3 {
-		fillTriangle2(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor)
+		fillTriangle2(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor, samplesCount)
 
 		// drawLinePoints(triangles[i], triangles[i+1], img, polygon.data.style.strokeColor)
 		// drawLinePoints(triangles[i+1], triangles[i+2], img, polygon.data.style.strokeColor)

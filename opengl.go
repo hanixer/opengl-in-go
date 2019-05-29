@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
-	"io/ioutil"
 	"log"
-	"runtime"
 	"strings"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
@@ -55,40 +53,6 @@ var (
 	}
 )
 
-func main() {
-	runtime.LockOSThread()
-	window := initGlfw()
-	defer glfw.Terminate()
-	program := initOpenGL()
-	vao := makeVao(vertexData)
-	texture := makeTexture()
-
-	data, err := ioutil.ReadFile(defaultInputSvg)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	svgData := parseSvgString(string(data))
-	img := drawSvg(svgData)
-	swapVertically(img)
-	updateTexture(texture, img)
-	// window.SetSize(int(svgData.width), int(svgData.height))
-
-	gl.UseProgram(program)
-
-	for !window.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		gl.UseProgram(program)
-
-		// draw(window, prog)
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, texture)
-		gl.BindVertexArray(vao)
-		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-		glfw.PollEvents()
-		window.SwapBuffers()
-	}
-}
-
 // initGlfw initializes glfw and returns a Window to use.
 func initGlfw() *glfw.Window {
 	if err := glfw.Init(); err != nil {
@@ -108,13 +72,6 @@ func initGlfw() *glfw.Window {
 	window.SetKeyCallback(keyCallBack)
 
 	return window
-}
-
-func keyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	if key == glfw.KeyMinus && action == glfw.Release {
-		fmt.Println("Minus pressed!")
-	}
-
 }
 
 func initOpenGL() uint32 {
