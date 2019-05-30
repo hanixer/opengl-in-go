@@ -23,21 +23,21 @@ func edge(x, y float64) {
 
 type edgeEquation struct {
 	a, b, c float64
+	frac    float64
+	tie     bool
 }
 
-func newEdgeEquation(v0, v1 vertex) edgeEquation {
-	var eq edgeEquation
-	eq.a = v0.y - v1.y
-	eq.b = v1.x - v0.x
-	eq.c = v0.x*v1.y - v1.x*v0.y
-	return eq
-}
-
-func newEdgeEquation2(v0, v1 mgl64.Vec2) edgeEquation {
+func newEdgeEquation(v0, v1 mgl64.Vec2) edgeEquation {
 	var eq edgeEquation
 	eq.a = v0.Y() - v1.Y()
 	eq.b = v1.X() - v0.X()
 	eq.c = v0.X()*v1.Y() - v1.X()*v0.Y()
+	if eq.a != 0 {
+		eq.tie = eq.a > 0
+	} else {
+		eq.tie = eq.b > 0
+	}
+	eq.frac = 1
 	return eq
 }
 
@@ -49,8 +49,9 @@ func newEdgeEquationInt(x0, y0, x1, y1 int) edgeEquation {
 	return e
 }
 
-func (edge edgeEquation) test(x, y float64) bool {
-	return edge.a*x+edge.b*y+edge.c > 0
+func (edge edgeEquation) test(v mgl64.Vec2) bool {
+	w := edge.evaluateP(v)
+	return w > 0 || w == 0 && edge.tie
 }
 
 func (edge edgeEquation) evaluate(x, y float64) float64 {
@@ -58,7 +59,15 @@ func (edge edgeEquation) evaluate(x, y float64) float64 {
 }
 
 func (edge edgeEquation) evaluateP(p mgl64.Vec2) float64 {
+	return edge.frac * edge.evaluate(p.X(), p.Y())
+}
+
+func (edge edgeEquation) evaluateP1(p mgl64.Vec2) float64 {
 	return edge.evaluate(p.X(), p.Y())
+}
+
+func (edge *edgeEquation) cacheFraction(v mgl64.Vec2) {
+	edge.frac = 1.0 / edge.evaluateP(v)
 }
 
 type parameterEquation struct {
@@ -79,11 +88,11 @@ func max(a, b float64) float64 {
 	return a
 }
 
-func boundingBox(v0, v1, v2 vertex) (x0, y0, x1, y1 float64) {
-	x0 = min(min(v0.x, v1.x), v2.x)
-	y0 = min(min(v0.y, v1.y), v2.y)
-	x1 = max(max(v0.x, v1.x), v2.x)
-	y1 = max(max(v0.y, v1.y), v2.y)
+func boundingBox(v0, v1, v2 mgl64.Vec2) (x0, y0, x1, y1 float64) {
+	x0 = min(min(v0.X(), v1.X()), v2.X())
+	y0 = min(min(v0.Y(), v1.Y()), v2.Y())
+	x1 = max(max(v0.X(), v1.X()), v2.X())
+	y1 = max(max(v0.Y(), v1.Y()), v2.Y())
 
 	x0 = math.Floor(x0)
 	y0 = math.Floor(y0)
@@ -101,12 +110,13 @@ func vert(x, y float64) vertex { return vertex{x: x, y: y} }
 
 func convertVertex(v mgl64.Vec2) vertex { return vertex{x: v.X(), y: v.Y()} }
 
-func fillTriangle2(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color, samplesCount int) {
-	fillTriangle(convertVertex(v0), convertVertex(v1), convertVertex(v2), img, c, samplesCount)
-}
-
 func makeSamples(samples []mgl64.Vec2, x, y float64, n int) {
 	frac := 1.0 / float64(n)
+	if n == 1 {
+		samples[0][0] = x + 0.5
+		samples[0][1] = y + 0.5
+		return
+	}
 	for i := 0.0; i < float64(n); i++ {
 		for j := 0.0; j < float64(n); j++ {
 			xx := x + j*frac + rand.Float64()*frac
@@ -117,16 +127,16 @@ func makeSamples(samples []mgl64.Vec2, x, y float64, n int) {
 	}
 }
 
-func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color, samplesCount int) {
+func fillTriangle(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color, samplesCount int) {
 	minX, minY, maxX, maxY := boundingBox(v0, v1, v2)
 
 	e0 := newEdgeEquation(v1, v2)
 	e1 := newEdgeEquation(v2, v0)
 	e2 := newEdgeEquation(v0, v1)
 
-	k0 := 1.0 / e0.evaluate(v0.x, v0.y)
-	k1 := 1.0 / e1.evaluate(v1.x, v1.y)
-	k2 := 1.0 / e2.evaluate(v2.x, v2.y)
+	e0.cacheFraction(v0)
+	e1.cacheFraction(v1)
+	e2.cacheFraction(v2)
 
 	samples := make([]mgl64.Vec2, samplesCount*samplesCount)
 	for y := minY; y <= maxY; y++ {
@@ -135,10 +145,7 @@ func fillTriangle(v0, v1, v2 vertex, img draw.Image, c color.Color, samplesCount
 			makeSamples(samples, x, y, samplesCount)
 			for _, p := range samples {
 				// compute baricentric coordinates
-				w0 := k0 * e0.evaluateP(p)
-				w1 := k1 * e1.evaluateP(p)
-				w2 := k2 * e2.evaluateP(p)
-				if w0 >= 0 && w1 >= 0 && w2 >= 0 {
+				if e0.test(p) && e1.test(p) && e2.test(p) {
 					addColor(&colorAcc, c)
 				}
 			}

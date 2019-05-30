@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"image"
+	"image/color"
 	"image/png"
 	"io/ioutil"
 	"log"
@@ -9,6 +11,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/go-gl/mathgl/mgl64"
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -98,13 +102,17 @@ func updateSvg() {
 	svgData := parseSvgString(string(data))
 	window.SetSize(int(svgData.width), int(svgData.height))
 	gl.Viewport(0, 0, int32(svgData.width), int32(svgData.height))
-	// gl.Viewport(0, 0, int32(width), int32(height))
 	img := drawSvg(svgData, samplesCount)
 
-	// img := image.NewRGBA(image.Rect(0, 0, 600, 600))
+	img2 := image.NewRGBA(image.Rect(0, 0, int(svgData.width), int(svgData.height)))
+	valu := 100.0
+	fillTriangle(mgl64.Vec2{0, 0}, mgl64.Vec2{0, valu}, mgl64.Vec2{valu, 0}, img2, color.White, 2)
+	fillTriangle(mgl64.Vec2{0, valu}, mgl64.Vec2{valu, valu}, mgl64.Vec2{valu, 0}, img2, color.RGBA{0xFF, 0, 0, 0xFF}, 2)
 
-	// draw.Draw(img, image.Rect(0, 0, 100, 100), image.NewUniform(color.RGBA{100, 100, 50, 255}), image.ZP, draw.Src)
-	// draw.Draw(img, image.Rect(0, 500, 600, 600), image.NewUniform(color.RGBA{100, 100, 50, 255}), image.ZP, draw.Src)
+	f, _ := os.Create("out.png")
+	png.Encode(f, img2)
+	f, _ = os.Create("out1.png")
+	png.Encode(f, img)
 
 	swapVertically(img)
 

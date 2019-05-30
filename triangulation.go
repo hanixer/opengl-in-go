@@ -128,9 +128,9 @@ func anyPointInsideTriangle(p0, p1, p2 mgl64.Vec2, head *listNode, listSize int)
 }
 
 func isPointInsideTriangle(p0, p1, p2, point mgl64.Vec2) bool {
-	e0 := newEdgeEquation2(p1, p2)
-	e1 := newEdgeEquation2(p2, p0)
-	e2 := newEdgeEquation2(p0, p1)
+	e0 := newEdgeEquation(p1, p2)
+	e1 := newEdgeEquation(p2, p0)
+	e2 := newEdgeEquation(p0, p1)
 
 	w0 := e0.evaluate(point.X(), point.Y())
 	w1 := e1.evaluate(point.X(), point.Y())
