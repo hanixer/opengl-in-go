@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"image/color"
 	"image/draw"
 	"math"
@@ -127,7 +128,7 @@ func makeSamples(samples []mgl64.Vec2, x, y float64, n int) {
 	}
 }
 
-func fillTriangle(v0, v1, v2 mgl64.Vec2, img draw.Image, fillColor color.RGBA, samplesCount int) {
+func fillTriangle(v0, v1, v2 mgl64.Vec2, img *image.RGBA, fillColor color.RGBA, samplesCount int) {
 	minX, minY, maxX, maxY := boundingBox(v0, v1, v2)
 
 	e0 := newEdgeEquation(v1, v2)
@@ -165,7 +166,7 @@ func convertColor64(v uint64) uint8 {
 	return uint8(v * 0xFF / 0xFFFF)
 }
 
-func setPixel(img draw.Image, x, y float64, fillColor color.RGBA) {
+func setPixel(img *image.RGBA, x, y float64, fillColor color.RGBA) {
 	// Ca' = 1 - (1 - Ea) * (1 - Ca)
 	// Cr' = (1 - Ea) * Cr + Er
 	// Cg' = (1 - Ea) * Cg + Eg
@@ -173,8 +174,9 @@ func setPixel(img draw.Image, x, y float64, fillColor color.RGBA) {
 	xx := int(x)
 	yy := int(y)
 	// max := 0xFFFF
-	// fr, fg, fb, _ := fillColor.RGBA()
+	// fr, fg, fb, _ := fillColor.R
 	// br, bg, bb, ba := img.At(xx, yy).RGBA()
+	// r := fillColor.R + img
 	img.Set(xx, yy, fillColor)
 	// img.Set(xx, yy, color.RGBA64{uint16((fr + br) * 0xFFFF / 0xFFFFFFFF), uint16(fg + bg), uint16(fb + bb), uint16(ba)})
 	// cr = (max-ea)*cr + er

@@ -142,7 +142,8 @@ func drawSvgPolyline(polyline *svgPolyline, img draw.Image, samplesCount int) {
 func drawSvgPolygon(polygon *svgPolygon, img draw.Image, samplesCount int) {
 	triangles := triangulate(polygon.points)
 	for i := 0; i+2 < len(triangles); i += 3 {
-		fillTriangle(triangles[i], triangles[i+1], triangles[i+2], img, polygon.data.style.fillColor, samplesCount)
+		imgRGBA := img.(*image.RGBA)
+		fillTriangle(triangles[i], triangles[i+1], triangles[i+2], imgRGBA, polygon.data.style.fillColor, samplesCount)
 
 		// drawLinePoints(triangles[i], triangles[i+1], img, polygon.data.style.strokeColor)
 		// drawLinePoints(triangles[i+1], triangles[i+2], img, polygon.data.style.strokeColor)
