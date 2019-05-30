@@ -18,7 +18,7 @@ import (
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
-var defaultInputSvg = `svg\hexes.svg`
+var defaultInputSvg = `svg\illustration\04_sun.svg`
 var samplesCount = 1
 var texture uint32
 var window *glfw.Window
@@ -59,6 +59,12 @@ func main55() {
 
 func main() {
 	runtime.LockOSThread()
+
+	ccc := [4]uint64{}
+	addColor(&ccc, color.RGBA{255, 255, 0, 255})
+	addColor(&ccc, color.RGBA{255, 255, 0, 255})
+	divideColor(&ccc, 2)
+	fmt.Println(convertColor64(0xFFFF))
 
 	filepath.Walk("svg", walkPath)
 
@@ -103,16 +109,18 @@ func updateSvg() {
 	window.SetSize(int(svgData.width), int(svgData.height))
 	gl.Viewport(0, 0, int32(svgData.width), int32(svgData.height))
 	img := drawSvg(svgData, samplesCount)
-
-	img2 := image.NewRGBA(image.Rect(0, 0, int(svgData.width), int(svgData.height)))
-	valu := 100.0
-	fillTriangle(mgl64.Vec2{0, 0}, mgl64.Vec2{0, valu}, mgl64.Vec2{valu, 0}, img2, color.White, 2)
-	fillTriangle(mgl64.Vec2{0, valu}, mgl64.Vec2{valu, valu}, mgl64.Vec2{valu, 0}, img2, color.RGBA{0xFF, 0, 0, 0xFF}, 2)
-
-	f, _ := os.Create("out.png")
-	png.Encode(f, img2)
+	// img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+	var f *os.File
 	f, _ = os.Create("out1.png")
 	png.Encode(f, img)
+
+	img2 := image.NewRGBA(image.Rect(0, 0, int(svgData.width), int(svgData.height)))
+	valu := 4.0
+	fillTriangle(mgl64.Vec2{0, 0}, mgl64.Vec2{0, valu}, mgl64.Vec2{valu, 0}, img2, color.RGBA{0xff, 0xff, 0xff, 0xff}, 2)
+	fillTriangle(mgl64.Vec2{0, valu}, mgl64.Vec2{valu, valu}, mgl64.Vec2{valu, 0}, img2, color.RGBA{0xFF, 0, 0, 0xFF}, 2)
+
+	f, _ = os.Create("out.png")
+	png.Encode(f, img2)
 
 	swapVertically(img)
 

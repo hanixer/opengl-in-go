@@ -127,7 +127,7 @@ func makeSamples(samples []mgl64.Vec2, x, y float64, n int) {
 	}
 }
 
-func fillTriangle(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color, samplesCount int) {
+func fillTriangle(v0, v1, v2 mgl64.Vec2, img draw.Image, fillColor color.RGBA, samplesCount int) {
 	minX, minY, maxX, maxY := boundingBox(v0, v1, v2)
 
 	e0 := newEdgeEquation(v1, v2)
@@ -146,18 +146,43 @@ func fillTriangle(v0, v1, v2 mgl64.Vec2, img draw.Image, c color.Color, samplesC
 			for _, p := range samples {
 				// compute baricentric coordinates
 				if e0.test(p) && e1.test(p) && e2.test(p) {
-					addColor(&colorAcc, c)
+					addColor(&colorAcc, fillColor)
 				}
 			}
 			divideColor(&colorAcc, samplesCount*samplesCount)
 			if colorAcc[3] != 0 {
-				c64 := color.RGBA64{uint16(colorAcc[0]), uint16(colorAcc[1]),
-					uint16(colorAcc[2]), uint16(colorAcc[3])}
-				img.Set(int(x), int(y), c64)
+				c64 := color.RGBA{convertColor64(colorAcc[0]), convertColor64(colorAcc[1]),
+					convertColor64(colorAcc[2]), convertColor64(colorAcc[3])}
+				// img.Set(int(x), int(y), c64)
+				setPixel(img, x, y, c64)
 			}
 		}
 
 	}
+}
+
+func convertColor64(v uint64) uint8 {
+	return uint8(v * 0xFF / 0xFFFF)
+}
+
+func setPixel(img draw.Image, x, y float64, fillColor color.RGBA) {
+	// Ca' = 1 - (1 - Ea) * (1 - Ca)
+	// Cr' = (1 - Ea) * Cr + Er
+	// Cg' = (1 - Ea) * Cg + Eg
+	// Cb' = (1 - Ea) * Cb + Eb
+	xx := int(x)
+	yy := int(y)
+	// max := 0xFFFF
+	// fr, fg, fb, _ := fillColor.RGBA()
+	// br, bg, bb, ba := img.At(xx, yy).RGBA()
+	img.Set(xx, yy, fillColor)
+	// img.Set(xx, yy, color.RGBA64{uint16((fr + br) * 0xFFFF / 0xFFFFFFFF), uint16(fg + bg), uint16(fb + bb), uint16(ba)})
+	// cr = (max-ea)*cr + er
+	// cg = (max-ea)*cg + eg
+	// cb = (max-ea)*cb + eb
+	// ca = max - (max-ea)*(max-ca)
+	// img.Set(xx, yy, color.RGBA64{})
+
 }
 
 func addColor(colorAccum *[4]uint64, c color.Color) {
