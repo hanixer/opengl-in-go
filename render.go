@@ -173,25 +173,17 @@ func setPixel(img *image.RGBA, x, y float64, fillColor color.RGBA) {
 	// Cb' = (1 - Ea) * Cb + Eb
 	xx := int(x)
 	yy := int(y)
-	// max := 0xFFFF
-	// fr, fg, fb, _ := fillColor.R
-	// br, bg, bb, ba := img.At(xx, yy).RGBA()
 	bg := img.RGBAAt(xx, yy)
 	if bg.A != 0 {
-		r := (fillColor.R + bg.R) / 2
-		g := (fillColor.G + bg.G) / 2
-		b := (fillColor.B + bg.B) / 2
-		a := (fillColor.A + bg.A) / 2
+		alpha := (255 - fillColor.A)
+		r := alpha*bg.R/255 + fillColor.R
+		g := alpha*bg.G/255 + fillColor.G
+		b := alpha*bg.B/255 + fillColor.B
+		a := 255 - (255-fillColor.A)*(255-bg.A)/255
 		img.Set(xx, yy, color.RGBA{r, g, b, a})
 	} else {
 		img.Set(xx, yy, fillColor)
 	}
-	// img.Set(xx, yy, color.RGBA64{uint16((fr + br) * 0xFFFF / 0xFFFFFFFF), uint16(fg + bg), uint16(fb + bb), uint16(ba)})
-	// cr = (max-ea)*cr + er
-	// cg = (max-ea)*cg + eg
-	// cb = (max-ea)*cb + eb
-	// ca = max - (max-ea)*(max-ca)
-	// img.Set(xx, yy, color.RGBA64{})
 
 }
 
