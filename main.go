@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/png"
 	"io/ioutil"
 	"log"
@@ -12,13 +13,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-gl/mathgl/mgl64"
-
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
-var defaultInputSvg = `svg\illustration\04_sun.svg`
+var defaultInputSvg = `svg\illustration\02_hexes.svg`
 var samplesCount = 1
 var texture uint32
 var window *glfw.Window
@@ -59,12 +58,6 @@ func main55() {
 
 func main() {
 	runtime.LockOSThread()
-
-	ccc := [4]uint64{}
-	addColor(&ccc, color.RGBA{255, 255, 0, 255})
-	addColor(&ccc, color.RGBA{255, 255, 0, 255})
-	divideColor(&ccc, 2)
-	fmt.Println(convertColor64(0xFFFF))
 
 	filepath.Walk("svg", walkPath)
 
@@ -114,10 +107,13 @@ func updateSvg() {
 	f, _ = os.Create("out1.png")
 	png.Encode(f, img)
 
-	img2 := image.NewRGBA(image.Rect(0, 0, int(svgData.width), int(svgData.height)))
-	valu := 4.0
-	fillTriangle(mgl64.Vec2{0, 0}, mgl64.Vec2{0, valu}, mgl64.Vec2{valu, 0}, img2, color.RGBA{0xff, 0xff, 0xff, 0xff}, 2)
-	fillTriangle(mgl64.Vec2{0, valu}, mgl64.Vec2{valu, valu}, mgl64.Vec2{valu, 0}, img2, color.RGBA{0xFF, 0, 0, 0xFF}, 2)
+	img2 := image.NewRGBA(image.Rect(0, 0, 500, 500))
+	color1 := color.RGBA{255, 129, 104, 255}
+	color2 := color.RGBA{23, 249, 237, 20}
+	color3 := mixColors(color1, color2)
+	draw.Draw(img2, image.Rect(0, 0, 100, 100), image.NewUniform(color1), image.ZP, draw.Src)
+	draw.Draw(img2, image.Rect(100, 0, 200, 100), image.NewUniform(color2), image.ZP, draw.Src)
+	draw.Draw(img2, image.Rect(200, 0, 300, 100), image.NewUniform(color3), image.ZP, draw.Src)
 
 	f, _ = os.Create("out.png")
 	png.Encode(f, img2)
@@ -125,6 +121,14 @@ func updateSvg() {
 	swapVertically(img)
 
 	updateTexture(texture, img)
+}
+
+func mixColors(c1, c2 color.RGBA) color.RGBA {
+	al := float64(c2.A) / 255.0
+	r := uint8(float64(c2.R)*al + float64(c1.R)*(1.0-al))
+	g := uint8(float64(c2.G)*al + float64(c1.G)*(1.0-al))
+	b := uint8(float64(c2.B)*al + float64(c1.B)*(1.0-al))
+	return color.RGBA{r, g, b, 255}
 }
 
 func sizeCallback(_ *glfw.Window, w int, h int) {

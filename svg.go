@@ -109,6 +109,7 @@ type svg struct {
 func drawSvg(svg *svg, samplesCount int) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, int(svg.width), int(svg.height)))
 	now := time.Now()
+	draw.Draw(img, img.Bounds(), image.NewUniform(color.White), image.ZP, draw.Src)
 	drawElements(svg.elements, img, samplesCount)
 	fmt.Println("render time", time.Now().Sub(now).Seconds())
 	return img
